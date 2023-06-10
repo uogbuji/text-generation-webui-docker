@@ -1,18 +1,24 @@
 version: "3"
 services:
   text-generation-webui-docker:
+    # Uncomment the image line to pull from upstream
     image: atinoda/text-generation-webui:default # Specify variant as the :tag
+    # Uncomment following 2 lines to build locally
+    # build:
+    #   target: default  # Specify the variant to build
     container_name: text-generation-webui
     environment:
-      - EXTRA_LAUNCH_ARGS="--listen --verbose" # Custom launch args (e.g., --model MODEL_NAME)
+      # - EXTRA_LAUNCH_ARGS="--listen --verbose" # Custom launch args (e.g., --model MODEL_NAME)
+      - EXTRA_LAUNCH_ARGS="--listen --verbose --api --extensions openai --wbit 4 --groupsize 128 --gpu-memory 7 11 --pre_layer 10 40" # Custom launch args (e.g., --model MODEL_NAME)
     ports:
       - 7860:7860  # Default web port
-#      - 5000:5000  # Default API port
+      - 5000:5000  # Default API port
 #      - 5005:5005  # Default streaming port
-#      - 5001:5001  # Default OpenAI API extension port
+      - 5001:5001  # Default OpenAI API extension port
     volumes:
       - ./config/loras:/app/loras
-      - ./config/models:/app/models
+#      - ./config/models:/app/models
+      - /opt/mlai/cache/huggingface/dl:/app/models
       - ./config/presets:/app/presets
       - ./config/prompts:/app/prompts
       - ./config/softprompts:/app/softprompts
@@ -27,5 +33,5 @@ services:
           reservations:
             devices:
               - driver: nvidia
-                device_ids: ['0']
+                device_ids: ['0', '1']
                 capabilities: [gpu]

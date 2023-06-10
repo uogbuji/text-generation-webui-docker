@@ -30,6 +30,10 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     chmod +x /scripts/build_extensions.sh && . /scripts/build_extensions.sh
 # Clone default GPTQ
 RUN git clone https://github.com/oobabooga/GPTQ-for-LLaMa.git -b cuda /app/repositories/GPTQ-for-LLaMa
+# auto-gptq was removed from most recent. See: https://github.com/Atinoda/text-generation-webui-docker/issues/4
+# Install auto-gptq
+# RUN cd /app/repositories/ && git clone https://github.com/PanQiWei/AutoGPTQ.git && \
+#     cd AutoGPTQ && pip3 install .
 # Build and install default GPTQ ('quant_cuda')
 ARG TORCH_CUDA_ARCH_LIST="6.1;7.0;7.5;8.0;8.6+PTX"
 RUN cd /app/repositories/GPTQ-for-LLaMa/ && python3 setup_cuda.py install
@@ -91,7 +95,11 @@ RUN echo "LLAMA-CUBLAS" >> /variant.txt
 RUN apt-get install --no-install-recommends -y git python3-dev build-essential python3-pip
 ENV LLAMA_CUBLAS=1
 RUN pip uninstall -y llama-cpp-python && \
-    CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install llama-cpp-python
+    CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 python -m pip install llama-cpp-python --force-reinstall --no-cache-dir
+#    CMAKE_ARGS="-DLLAMA_CUBLAS=1 -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc" FORCE_CMAKE=1 pip install llama-cpp-python
+# This flag set is the Atinoda built-in, but discussion elsewhere suggests it's flawed
+#    CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install llama-cpp-python
+
 ENV EXTRA_LAUNCH_ARGS=""
 CMD ["python3", "/app/server.py"]
 
